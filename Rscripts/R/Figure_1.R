@@ -1,94 +1,76 @@
+library(dplyr)
 library(erba)
-library(tidyverse)
+library(here)
+library(readxl)
 
 ##########################################################################
-# COGs Transcription Factors #####
+# A) COGs Transcription Factors #####
 
 ## load data
-total_cogs_tf <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_6.txt")
+total_cogs <- readxl::read_excel(here::here("data/Table_S3.xlsx"),
+                            col_names = TRUE,
+                            skip = 2)
 
 ## plot distribution of transcription factors versus genome size
-erba::plot_points(total_cogs_tf, type = "general",
-                  filename = "figures/cogs_tf_factor_lm.tiff",
+erba::plot_points(total_cogs, type = "general",
+                  column_orfs = total_cogs$`ORFs(X100)`,
+                  column_total = total_cogs$`Transcription Factors`,
+                  filename = here::here("figures/cogs_tf_factor_lm.tiff"),
                   title = "Transcription factors",
                   ylab = "Transcription factors per genome", ymax = 800)
 
 ### obtain lm Coefficients in general
-lm(data = total_cogs_tf, formula = total~ORFs)
-cor(total_cogs_tf$total, total_cogs_tf$ORFs) %>% round(2)
+lm(total_cogs$`Transcription Factors` ~ total_cogs$`ORFs(X100)`)
+cor(total_cogs$`Transcription Factors`, total_cogs$`ORFs(X100)`) %>% round(2)
+
 ####################################################################
-# COGs Sigma Factors ####
+# B) COGs Sigma Factors ####
 
 ## load data
-total_cogs_sigma <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_8.txt")
+total_cogs <- readxl::read_excel(here::here("data/Table_S3.xlsx"),
+                                 col_names = TRUE,
+                                 skip = 2)
 
 archaeas <-  c("Euryarchaeota", "Crenarchaeota")
-total_cogs_sigma <- total_cogs_sigma %>%
+total_cogs <- total_cogs %>%
   filter(!phylum %in% archaeas)
 
 ## plot distribution of sigma factors versus genome size
-erba::plot_points(total_cogs_sigma, type =  "general",
-                  filename =  "figures/cogs_sigma_factor_lm.tiff",
+erba::plot_points(total_cogs, type =  "general",
+                  column_orfs = total_cogs$`ORFs(X100)`,
+                  column_total = total_cogs$`Sigma factors`,
+                  filename =  here::here("figures/cogs_sigma_factor_lm.tiff"),
                   title ="Sigma factors",
                   ylab = "Sigma factors per genome", ymax = 150)
 
 ## obtain lm Coefficients in general
-lm(data = total_cogs_sigma, formula = total~ORFs)
-cor(total_cogs_sigma$total, total_cogs_sigma$ORFs) %>% round(2)
+lm(total_cogs$`Sigma factors` ~ total_cogs$`ORFs(X100)` )
+cor(total_cogs$`Sigma factors`, total_cogs$`ORFs(X100)`) %>% round(2)
+
 
 ##########################################################################
-# KOs Transcription Factors #####
+# C) Riboswitch #####
 
 ## load data
-total_kos_tf <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_7.txt")
-
-## plot distribution of transcription factors versus genome size
-erba::plot_points(total_kos_tf, type = "general",
-                  filename = "figures/kos_tf_factor_lm.tiff",
-                  title = "Transcription factors",
-                  ylab = "Transcription factors per genome")
-
-### obtain lm Coefficients in general
-lm(data = data_kos_tf, formula = total~ORFs)
-cor(total_kos_tf$total, total_kos_tf$ORFs) %>% round(2)
-
-####################################################################
-# KOs Sigma Factors ####
-
-## load data
-total_kos_sigma <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_9.txt")
-archaeas <-  c("Euryarchaeota", "Crenarchaeota")
-total_kos_sigma <- total_kos_sigma %>%
-  filter(!phylum %in% archaeas)
-
-## plot distribution of sigma factors versus genome size
-erba::plot_points(total_kos_sigma, type =  "general",
-                  filename =  "figures/kos_sigma_factor_lm.tiff",
-                  title ="Sigma factors",
-                  ylab = "Sigma factors per genome",
-                  ymax = 120)
-
-## obtain lm Coefficients in general
-lm(data = total_kos_sigma, formula = total~ORFs)
-cor(total_kos_sigma$total, total_kos_sigma$ORFs) %>% round(2)
-
-##########################################################################
-# Riboswitch #####
-
-## load data
-data_riboswitch <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_10.txt")
+data_riboswitch <- readxl::read_excel(here::here("data/Table_S5.xlsx"),
+                                      sheet = 2,
+                                      col_names = TRUE,
+                                      skip = 2)
+colnames(data_riboswitch)[2] <- "ORFs"
 
 ## plot distribution of riboswitches versus genome size
 erba::plot_exception(data_riboswitch,
-                     filename = "figures/riboswitch_lm.tiff",
+                     filename = here::here("figures/riboswitch_lm.tiff"),
                      title = "Transcriptional Riboswitches",
                      ylab = "Riboswitches per genome",
                      ymax = 80,
                      exception_group = "Firmicutes")
 
 ### obtain lm Coefficients in general
-lm(data = data_riboswitch[data_riboswitch$phylum =="Firmicutes",], formula = total~ORFs)
-lm(data = data_riboswitch[!data_riboswitch$phylum =="Firmicutes",], formula = total~ORFs)
+lm(data = data_riboswitch[data_riboswitch$phylum =="Firmicutes",],
+   formula = total~ORFs)
+lm(data = data_riboswitch[!data_riboswitch$phylum =="Firmicutes",],
+   formula = total~ORFs)
 
 data_riboswitch  %>%
     filter(phylum == "Firmicutes")  %>%
@@ -99,3 +81,82 @@ data_riboswitch  %>%
     filter(!phylum == "Firmicutes")  %>%
     summarise(cor = cor(total, ORFs)) %>%
     round(2)
+
+
+##########################################################################
+# D) COGs Transcription Factors #####
+
+## load data
+total_cogs <- readxl::read_excel(here::here("data/Table_S3.xlsx"),
+                                 col_names = TRUE,
+                                 skip = 2)
+
+## plot distribution of transcription factors versus genome size
+erba::plot_points(total_cogs, type = "groups",
+                  column_total = total_cogs$`Transcription Factors`,
+                  column_orfs = total_cogs$`ORFs(X100)`,
+                  filename = here::here("figures/cogs_tf_factor_lm_color.tiff"),
+                  title = "Transcription factors",
+                  ylab = "Transcription factors per genome", ymax = 800)
+
+## obtain lm Coefficients per group
+erba::get_correlation(total_cogs, x = "ORFs(X100)", y = "Transcription Factors")
+erba::get_slopePerPhylum(total_cogs, x =  "ORFs(X100)" , y ="Transcription Factors")
+
+
+####################################################################
+# E) COGs Sigma Factors ####
+
+## load data
+total_cogs <- readxl::read_excel(here::here("data/Table_S3.xlsx"),
+                                 col_names = TRUE,
+                                 skip = 2)
+
+archaeas <-  c("Euryarchaeota", "Crenarchaeota")
+total_cogs <- total_cogs %>%
+  filter(!phylum %in% archaeas)
+
+
+## plot distribution of transcription factors versus genome size
+erba::plot_points(total_cogs, type =  "groups",
+                  column_total = total_cogs$`Sigma factors`,
+                  column_orfs = total_cogs$`ORFs(X100)`,
+                  filename  =  here::here("figures/cogs_sigma_factor_lm_color.tiff"),
+                  title ="Sigma factors",
+                  ylab = "Sigma factors per genome", ymax = 150)
+
+### obtain lm Coefficients per group
+erba::get_correlation(total_cogs, x = "ORFs(X100)", y = "Sigma factors")
+erba::get_slopePerPhylum(total_cogs, x = "ORFs(X100)", y = "Sigma factors")
+
+##########################################################################
+# F) Riboswitch #####
+
+## load data
+data_riboswitch <- readxl::read_excel(here::here("data/Table_S5.xlsx"),
+                                      sheet = 2,
+                                      col_names = TRUE,
+                                      skip = 2)
+
+## plot distribution of riboswitches versus genome size
+zero_groups <- data_riboswitch %>%
+  group_by(phylum) %>%
+  summarise(total = sum(total)) %>%
+  filter(total == 0) %>%
+  select(phylum) %>% unlist()
+
+data_riboswitch <- data_riboswitch %>%
+  filter(!phylum %in% zero_groups)
+
+erba::plot_points(data_riboswitch,
+                  type = "groups",
+                  column_total = data_riboswitch$total,
+                  column_orfs = data_riboswitch$`ORFs(X100)`,
+                  filename = "figures/riboswitch_lm_color.tiff",
+                  title = "Transcriptional Riboswitches",
+                  ylab = "Riboswitches per genome",
+                  ymax = 80)
+
+### obtain lm Coefficients per group
+erba::get_correlation(data_riboswitch, x = "ORFs(X100)", y = "total")
+erba::get_slopePerPhylum(data_riboswitch, x = "ORFs(X100)", y = "total")

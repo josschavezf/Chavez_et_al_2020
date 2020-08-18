@@ -1,61 +1,49 @@
-# attach erba
+library(dplyr)
 library(erba)
+library(here)
+library(readxl)
+library(reshape2)
 
 ##################################################################
 
 # KEGG
 
-# load data
-total_kos_tf <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_7.txt")
-total_kos_sigma <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_9.txt")
-data_riboswitch <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_10.txt")
+## load data
+total_kos_tf <- readxl::read_excel(here::here("data/Table_S4.xlsx"),
+                                 col_names = TRUE,
+                                 sheet = 1,
+                                 skip = 2)
+total_kos_sigma <- readxl::read_excel(here::here("data/Table_S4.xlsx"),
+                                   col_names = TRUE,
+                                   sheet = 2,
+                                   skip = 2)
+data_riboswitch <- readxl::read_excel(here::here("data/Table_S5.xlsx"),
+                                      sheet = 2,
+                                      col_names = TRUE,
+                                      skip = 2)
 
-# create sumarized table
+## summarise data
+total_kos_tf <- total_kos_tf %>%
+  select("organism","phylum", "ORFs(X100)","total")
+colnames(total_kos_tf)[4] <- "Transcription factors"
 
-data_summarized <- total_kos_tf %>%
-  select(organism, ORFs, phylum, class) %>%
-  bind_cols(Transcription_Factor = total_kos_tf$total) %>%
-  bind_cols(Sigma_Factor = total_kos_sigma$total) %>%
-  bind_cols(Riboswitches = data_riboswitch$total)
+total_kos_sigma <- total_kos_sigma %>%
+  select("organism","total")
+colnames(total_kos_sigma)[2] <- "Sigma factors"
 
-data_summarized <- reshape2::melt(data_summarized, id.vars = c("organism","phylum", "class","ORFs"))
+data_riboswitch <- data_riboswitch %>%
+  select("organism","total")
+colnames(data_riboswitch)[2] <- "Riboswitches"
 
-colnames(data_summarized)[5] <- "regulator"
-colnames(data_summarized)[6] <- "total"
+data_merged <- merge(total_kos_tf, total_kos_sigma)
+data_merged <- merge(data_merged, data_riboswitch)
 
-# create function to plot ####
-colors_reg <- c("red", "blue", "darkgreen")
-names(colors_reg) <- c("Sigma_Factor", "Transcription_Factor", "Riboswitches")
+data_melted <- reshape2::melt(data_merged,
+                              id.vars = c("organism","phylum","ORFs(X100)"),
+                              variable.name = "type",
+                              value.name = "total")
 
-plot_regulators <- function(data, filename = "figure.tiff", title = "") {
-  tiff(filename, width = 1234, height = 880, units = 'px', res = 100)
-  myplot <- ggplot(data, aes(x = ORFs, y = total, colour = regulator)) +
-    geom_point() +
-    #ylim(0,ymax) +
-    #xlim(0,100) +
-    geom_smooth(method="lm", se=FALSE) +
-    ggtitle(title) +
-    labs(x= "ORFs (x 100)",y = "Transcriptional regulators per genome") +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          panel.background = element_blank(),
-          plot.title = element_text(hjust = 0.5, size = 28, face = "bold"),
-          axis.line = element_line(colour = "black", size = 1.5),
-          axis.title = element_text(size = 26, face = "bold"),
-          axis.text = element_text(size = 22, face = "bold"),
-          axis.ticks = element_line(size = 1.5, lineend = 2),
-          legend.title = element_blank(),
-          legend.position = c(0.165,0.9),
-          legend.text = element_text(size = 20, face = "bold"),
-          legend.key.size = unit(0.45, "in")) +
-    scale_color_manual(values = colors_reg,  aesthetics = "colour")
-  print(myplot)
-  dev.off()
-}
-
-# plot regulators vs ORFs per group ####
-for (i in selected_phylogeny) {
-  filename = paste0("figures/sup2_",i, ".tiff")
-  x <- data_summarized %>% filter(phylum == i)
-  plot_regulators(x, title = i, filename)
-}
+## plot data
+sapply(unique(data_melted$phylum), function(x) {data_melted %>%
+    filter(phylum == x) %>%
+    erba::plot_regulators(paste0("S3", x),x) } )

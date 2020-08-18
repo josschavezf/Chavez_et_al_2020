@@ -34,9 +34,9 @@ colnames(tf_repressor_non_repressor)[2] <- "ORFs"
 ## plot data
 erba::plot_repressor(tf_repressor_non_repressor,
                      filename = here::here("figures/tf_repressor_non_repressor.tiff"),
-                     title = "Transcription factors per genome",
-                     ylab = "Transcription factors",
-                     ymax = 200)
+                     title = "Transcription factors",
+                     ylab = "Transcription factors per genome",
+                     ymax = 150)
 
 ## get linear correlation coefficients
 lm(data = tf_repressor_non_repressor, formula = repressor ~ ORFs)

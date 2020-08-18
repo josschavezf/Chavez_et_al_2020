@@ -1,95 +1,46 @@
-library(erba)
 library(dplyr)
-##########################################################################
+library(erba)
+library(here)
+library(readxl)
 
-# COGs Transcription Factors #####
+# read TFs KO description
+kos_description <- readxl::read_excel(here::here("data/Table_S1.xlsx"),
+                                      sheet = 2,
+                                      col_names = TRUE,
+                                      skip = 2)
+kos_repressor <- kos_description %>%
+  filter(Description %in%
+           kos_description$Description[grep("repressor", kos_description$Description)]) %>%
+  select(KO)
 
-## load data
-total_cogs_tf <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_6.txt")
+kos_non_repressor <- kos_description %>%
+  filter(!KO %in% kos_repressor$KO ) %>%
+  select(KO)
 
-## plot distribution of transcription factors versus genome size
-erba::plot_points(total_cogs_tf, type = "groups",
-                  filename = "figures/cogs_tf_factor_lm_color.tiff",
-                  title = "Transcription factors",
-                  ylab = "Transcription factors per genome", ymax = 800)
+## load TF counts data
+total_kos_tf <- readxl::read_excel(here::here("data/Table_S4.xlsx"),
+                                   sheet = 1,
+                                   col_names = TRUE,
+                                   skip = 2)
 
-## obtain lm Coefficients per group
-get_correlation(total_cogs_tf)
-get_linear_coefficients(total_cogs_tf)
+## summarise repressor and non_repressor data
 
-####################################################################
-# COGs Sigma Factors ####
+tf_repressor_non_repressor <- total_kos_tf %>%
+  mutate(repressor = rowSums(total_kos_tf[all_of(kos_repressor$KO)] ),
+         non_repressor = rowSums(total_kos_tf[all_of(kos_non_repressor$KO)]) ) %>%
+  select("organism",  "ORFs(X100)", "repressor", "non_repressor")
+colnames(tf_repressor_non_repressor)[2] <- "ORFs"
 
-## load data
-total_cogs_sigma <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_8.txt")
-archaeas <-  c("Euryarchaeota", "Crenarchaeota")
-total_cogs_sigma <- total_cogs_sigma %>%
-  filter(!phylum %in% archaeas)
+## plot data
+erba::plot_repressor(tf_repressor_non_repressor,
+                     filename = here::here("figures/tf_repressor_non_repressor.tiff"),
+                     title = "Transcription factors per genome",
+                     ylab = "Transcription factors",
+                     ymax = 200)
 
-## plot distribution of transcription factors versus genome size
-erba::plot_points(total_cogs_sigma, type =  "groups",
-                  filename  =  "figures/cogs_sigma_factor_lm_color.tiff",
-                  title ="Sigma factors",
-                  ylab = "Sigma factors per genome", ymax = 150)
+## get linear correlation coefficients
+lm(data = tf_repressor_non_repressor, formula = repressor ~ ORFs)
+lm(data = tf_repressor_non_repressor, formula = non_repressor ~ ORFs)
 
-### obtain lm Coefficients per group
-erba::get_correlation(total_cogs_sigma)
-erba::get_linear_coefficients(total_cogs_sigma)
-
-##########################################################################
-
-# KOs Transcription Factors #####
-
-## load data
-total_kos_tf <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_7.txt")
-
-## plot distribution of transcription factors versus genome size
-erba::plot_points(total_kos_tf, type = "groups",
-                  filename = "figures/kos_tf_factor_lm_color.tiff",
-                  title = "Transcription factors",
-                  ylab = "Transcription factors per genome")
-
-## obtain lm Coefficients per group
-get_correlation(total_kos_tf)
-get_linear_coefficients(total_kos_tf)
-
-####################################################################
-# KOs Sigma Factors ####
-
-## load data
-total_kos_sigma <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_9.txt")
-archaeas <-  c("Euryarchaeota", "Crenarchaeota")
-total_kos_sigma <- total_kos_sigma %>%
-  filter(!phylum %in% archaeas)
-
-## plot distribution of transcription factors versus genome size
-erba::plot_points(total_kos_sigma, type =  "groups",
-                  filename  =  "figures/kos_sigma_factor_lm_color.tiff",
-                  title ="Sigma factors",
-                  ylab = "Sigma factors per genome", ymax = 120)
-
-## obtain lm Coefficients per group
-erba::get_correlation(total_kos_sigma)
-erba::get_linear_coefficients(total_kos_sigma)
-
-##########################################################################
-# Riboswitch #####
-
-## load data
-data_riboswitch <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_10.txt")
-
-## plot distribution of riboswitches versus genome size
-zero_groups <- c("Chlamydiae", "Crenarchaeota")
-data_riboswitch <- data_riboswitch %>%
-  filter(!phylum %in% zero_groups)
-
-erba::plot_points(data_riboswitch,
-                  type = "groups",
-                  filename = "figures/riboswitch_lm_color.tiff",
-                  title = "Transcriptional Riboswitches",
-                  ylab = "Riboswitches per genome",
-                  ymax = 80)
-
-### obtain lm Coefficients per group
-erba::get_correlation(data_riboswitch)
-erba::get_linear_coefficients(data_riboswitch)
+round(cor(tf_repressor_non_repressor$repressor, tf_repressor_non_repressor$ORFs), 2)
+round(cor(tf_repressor_non_repressor$non_repressor, tf_repressor_non_repressor$ORFs), 2)

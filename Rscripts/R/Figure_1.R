@@ -14,7 +14,7 @@ total_cogs <- readxl::read_excel(here::here("data/Table_S3.xlsx"),
 ## plot distribution of transcription factors versus genome size
 erba::plot_points(total_cogs, type = "general",
                   column_orfs = total_cogs$`ORFs(X100)`,
-                  column_total = total_cogs$`Transcription Factors`,
+                  column_total = total_cogs$`Transcription factors`,
                   filename = here::here("figures/cogs_tf_factor_lm.tiff"),
                   title = "Transcription factors",
                   ylab = "Transcription factors per genome", ymax = 800)
@@ -22,6 +22,23 @@ erba::plot_points(total_cogs, type = "general",
 ### obtain lm Coefficients in general
 lm(total_cogs$`Transcription Factors` ~ total_cogs$`ORFs(X100)`)
 cor(total_cogs$`Transcription Factors`, total_cogs$`ORFs(X100)`) %>% round(2)
+
+## plot quadratic distribution of transcription factors versus genome size
+erba::plot_points(total_cogs, type = "general",
+                  column_orfs = total_cogs$`ORFs(X100)`,
+                  column_total = total_cogs$`Transcription factors`,
+                  filename = here::here("figures/cogs_tf_factor_quadratic.tiff"),
+                  title = "Transcription factors",
+                  ylab = "Transcription factors per genome", ymax = 800,
+                  model.degree = 2)
+
+y <- total_cogs$`Transcription factors`
+x <- total_cogs$`ORFs(X100)`
+x2 <- x^2
+
+summary(lm(y ~ x))
+summary(lm(y ~ x  + x2))
+
 
 ####################################################################
 # B) COGs Sigma Factors ####
@@ -47,6 +64,23 @@ erba::plot_points(total_cogs, type =  "general",
 lm(total_cogs$`Sigma factors` ~ total_cogs$`ORFs(X100)` )
 cor(total_cogs$`Sigma factors`, total_cogs$`ORFs(X100)`) %>% round(2)
 
+
+## plot quadratic distribution of sigma factors versus genome size
+erba::plot_points(total_cogs, type =  "general",
+                  column_orfs = total_cogs$`ORFs(X100)`,
+                  column_total = total_cogs$`Sigma factors`,
+                  filename =  here::here("figures/cogs_sigma_factor_quadratic.tiff"),
+                  title ="Sigma factors",
+                  ylab = "Sigma factors per genome", ymax = 150,
+                  model.degree = 2)
+
+y <- total_cogs$`Sigma factors`
+x <- total_cogs$`ORFs(X100)`
+x2 <- x^2
+
+summary(lm(y ~ x))
+summary(lm(y ~ x + x2))
+cor(y, x)
 
 ##########################################################################
 # C) Riboswitch #####

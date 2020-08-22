@@ -26,24 +26,6 @@ erba::plot_points(total_kos_tf, type = "general",
 lm(total_kos_tf$total ~ total_kos_tf$`ORFs(X100)`)
 cor(total_kos_tf$total, total_kos_tf$`ORFs(X100)`) %>% round(2)
 
-## plot quadratic distribution of transcription factors versus genome size
-erba::plot_points(total_kos_tf, type = "general",
-                  column_total = total_kos_tf$total,
-                  column_orfs = total_kos_tf$`ORFs(X100)`,
-                  filename = here::here("figures/kos_tf_factor_quadratic.tiff"),
-                  title = "Transcription factors",
-                  ylab = "Transcription factors per genome",
-                  model.degree = 2)
-
-y <- total_kos_tf$total
-x <- total_kos_tf$`ORFs(X100)`
-x2 <- x^2
-
-summary(lm(y ~ x))
-summary(lm(y ~ x + x2))
-
-
-
 ####################################################################
 # B) KOs Sigma Factors ####
 
@@ -68,24 +50,6 @@ erba::plot_points(total_kos_sigma, type =  "general",
 ## obtain lm Coefficients in general
 lm(total_kos_sigma$total ~ total_kos_sigma$`ORFs(X100)`)
 cor(total_kos_sigma$total, total_kos_sigma$`ORFs(X100)`) %>% round(2)
-
-## plot quadratic distribution of sigma factors versus genome size
-erba::plot_points(total_kos_sigma, type =  "general",
-                  column_total = total_kos_sigma$total,
-                  column_orfs = total_kos_sigma$`ORFs(X100)`,
-                  filename =  here::here("figures/kos_sigma_factor_quadratic.tiff"),
-                  title ="Sigma factors",
-                  ylab = "Sigma factors per genome",
-                  ymax = 120,
-                  model.degree = 2)
-
-
-y <- total_kos_sigma$total
-x <- total_kos_sigma$`ORFs(X100)`
-x2 <- x^2
-
-summary(lm(y ~ x))
-summary(lm(y ~ x  + x2))
 
 ###############################################################################
 # C) KOs Transcription Factors per phylum #####

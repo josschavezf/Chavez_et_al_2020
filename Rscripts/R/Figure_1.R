@@ -56,32 +56,34 @@ data_riboswitch <- readxl::read_excel(here::here("data/Table_S5.xlsx"),
                                       sheet = 2,
                                       col_names = TRUE,
                                       skip = 2)
+
 colnames(data_riboswitch)[2] <- "ORFs"
 
-## plot distribution of riboswitches versus genome size
+zero_riboswitches <- c("Chlamydiae", "Crenarchaeota")
+data_riboswitch <- data_riboswitch %>% filter(!phylum %in% zero_riboswitches)
+
 erba::plot_exception(data_riboswitch,
                      filename = here::here("figures/riboswitch_lm.tiff"),
                      title = "Transcriptional Riboswitches",
                      ylab = "Riboswitches per genome",
-                     ymax = 80,
+                     ymax = 15,
                      exception_group = "Firmicutes")
 
 ### obtain lm Coefficients in general
 lm(data = data_riboswitch[data_riboswitch$phylum =="Firmicutes",],
-   formula = total~ORFs)
+   formula = total~ORFs)[[1]][2] %>% round(2)
 lm(data = data_riboswitch[!data_riboswitch$phylum =="Firmicutes",],
-   formula = total~ORFs)
+   formula = total~ORFs)[[1]][2] %>% round(2)
 
 data_riboswitch  %>%
-    filter(phylum == "Firmicutes")  %>%
-    summarise(cor = cor(total, ORFs)) %>%
-    round(2)
+  filter(phylum == "Firmicutes")  %>%
+  summarise(cor = cor(total, ORFs)) %>%
+  round(2)
 
 data_riboswitch  %>%
-    filter(!phylum == "Firmicutes")  %>%
-    summarise(cor = cor(total, ORFs)) %>%
-    round(2)
-
+  filter(!phylum == "Firmicutes")  %>%
+  summarise(cor = cor(total, ORFs)) %>%
+  round(2)
 
 ##########################################################################
 # D) COGs Transcription Factors #####
@@ -150,13 +152,13 @@ data_riboswitch <- data_riboswitch %>%
 
 erba::plot_points(data_riboswitch,
                   type = "groups",
+                  column_orfs = data_riboswitch$ORFs,
                   column_total = data_riboswitch$total,
-                  column_orfs = data_riboswitch$`ORFs(X100)`,
-                  filename = "figures/riboswitch_lm_color.tiff",
+                  filename = here::here("figures/riboswitch_lm_color.tiff"),
                   title = "Transcriptional Riboswitches",
                   ylab = "Riboswitches per genome",
-                  ymax = 80)
+                  ymax = 15)
 
 ### obtain lm Coefficients per group
-erba::get_correlation(data_riboswitch, x = "ORFs(X100)", y = "total")
-erba::get_slopePerPhylum(data_riboswitch, x = "ORFs(X100)", y = "total")
+erba::get_slopePerPhylum(data_riboswitch, x = "ORFs", y = "total")
+erba::get_correlation(data_riboswitch, x = "ORFs", y = "total")

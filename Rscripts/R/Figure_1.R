@@ -60,10 +60,10 @@ data_riboswitch <- readxl::read_excel(here::here("data/Table_S5.xlsx"),
 colnames(data_riboswitch)[2] <- "ORFs"
 
 zero_riboswitches <- c("Chlamydiae", "Crenarchaeota")
-data_riboswitch <- data_riboswitch %>% filter(!phylum %in% zero_riboswitches)
+data_riboswitch <- data_riboswitch %>% dplyr::filter(!phylum %in% zero_riboswitches)
 
 erba::plot_exception(data_riboswitch,
-                     filename = here::here("figures/riboswitch_lm.tiff"),
+                     filename = here::here("figures/riboswitch_lm2.tiff"),
                      title = "Transcriptional Riboswitches",
                      ylab = "Riboswitches per genome",
                      ymax = 15,

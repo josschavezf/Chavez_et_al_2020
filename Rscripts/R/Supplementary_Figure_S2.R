@@ -19,7 +19,7 @@ data_riboswitch <- data_riboswitch %>% filter(phylum != zero_riboswitches)
 
 ## plot distribution of riboswitches versus genome size
 erba::plot_exception(data_riboswitch,
-                     filename = here::here("figures/riboswitch_copies_lm.tiff"),
+                     filename = here::here("figures/S2_riboswitch_copies_lm.tiff"),
                      title = "Transcriptional Riboswitches",
                      ylab = "Riboswitches per genome",
                      ymax = 80,
@@ -63,7 +63,7 @@ erba::plot_points(data_riboswitch,
                   type = "groups",
                   column_total = data_riboswitch$total,
                   column_orfs = data_riboswitch$`ORFs(X100)`,
-                  filename = "figures/riboswitch_copies_lm_color.tiff",
+                  filename = "figures/S2_riboswitch_copies_lm_color.tiff",
                   title = "Transcriptional Riboswitches",
                   ylab = "Riboswitches per genome",
                   ymax = 80)

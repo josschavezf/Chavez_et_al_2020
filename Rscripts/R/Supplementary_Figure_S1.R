@@ -18,7 +18,7 @@ total_kos_tf <- readxl::read_excel(here::here("data/Table_S4.xlsx"),
 erba::plot_points(total_kos_tf, type = "general",
                   column_total = total_kos_tf$total,
                   column_orfs = total_kos_tf$`ORFs(X100)`,
-                  filename = here::here("figures/kos_tf_factor_lm.tiff"),
+                  filename = here::here("figures/S1_kos_tf_lm.tiff"),
                   title = "Transcription factors",
                   ylab = "Transcription factors per genome")
 
@@ -42,7 +42,7 @@ total_kos_sigma <- total_kos_sigma %>%
 erba::plot_points(total_kos_sigma, type =  "general",
                   column_total = total_kos_sigma$total,
                   column_orfs = total_kos_sigma$`ORFs(X100)`,
-                  filename =  here::here("figures/kos_sigma_factor_lm.tiff"),
+                  filename =  here::here("figures/S1_kos_sf_lm.tiff"),
                   title ="Sigma factors",
                   ylab = "Sigma factors per genome",
                   ymax = 120)
@@ -64,7 +64,7 @@ total_kos_tf <- readxl::read_excel(here::here("data/Table_S4.xlsx"),
 erba::plot_points(total_kos_tf, type = "groups",
                   column_total = total_kos_tf$total,
                   column_orfs = total_kos_tf$`ORFs(X100)`,
-                  filename = here::here("figures/kos_tf_factor_lm_color.tiff"),
+                  filename = here::here("figures/S1_kos_tf_lm_color.tiff"),
                   title = "Transcription factors",
                   ylab = "Transcription factors per genome")
 
@@ -88,7 +88,7 @@ total_kos_sigma <- total_kos_sigma %>%
 erba::plot_points(total_kos_sigma, type =  "groups",
                   column_total = total_kos_sigma$total,
                   column_orfs = total_kos_sigma$`ORFs(X100)`,
-                  filename =  "figures/kos_sigma_factor_lm_color.tiff",
+                  filename =  "figures/S1_kos_sf_lm_color.tiff",
                   title ="Sigma factors",
                   ylab = "Sigma factors per genome",
                   ymax = 120)

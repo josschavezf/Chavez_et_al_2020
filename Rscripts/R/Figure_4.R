@@ -74,23 +74,44 @@ df_riboswitch_group <- df_riboswitch %>%
 df_riboswitch_group$total <- na_if(df_riboswitch_group$total, 0)
 df_riboswitch_group$mean_riboswitches_per_organism <- na_if(df_riboswitch_group$mean_riboswitches_per_organism,0)
 
+## reorder by phylum
+phylum_order <- c("Firmicutes",
+                  "Tenericutes",
+                  "Actinobacteria",
+                  "Proteobacteria",
+                  "Spirochaetes",
+                  "Bacteroidetes",
+                  "Planctomycetes",
+                  "Verrucomicrobia",
+                  "Chlamydiae",
+                  "Euryarchaeota",
+                  "Crenarchaeota")
+
+df_riboswitch_group$phylum <- factor(df_riboswitch_group$phylum,
+                                     ordered = TRUE, levels = phylum_order)
+
+ribos_order <- c("TPP", levels(df_riboswitch_group$riboswitch)[-2] )
+
+df_riboswitch_group$riboswitch <- factor(df_riboswitch_group$riboswitch,
+                                     ordered = TRUE, levels = ribos_order)
+
+
 # plot points as mean percent of transcriptional riboswitches
 
-tiff(here::here("figures/riboswitch_transcriptional_percent2.tiff"),
-     width = 1600, height = 880, units = 'px', res = 100)
 ggplot(df_riboswitch_group,
        aes(x = riboswitch, y = phylum,
            size = mean_riboswitches_per_organism, color = mean_transcriptional_percent)) +
   geom_point() +
-  theme(axis.text.x = element_text(angle = 90, face = "bold", size = 12),
-        axis.text.y = element_text(face = "bold", size = 12),
+  theme(axis.text.x = element_text(angle = 90, face = "bold", size = 6, vjust = 0.5),
+        axis.text.y = element_text(face = "bold", size = 6),
         axis.title = element_blank(),
         panel.background = element_rect(fill = "#f5f5f5"),
         legend.position = "bottom",
-        legend.margin = unit(2.0, 'cm'),
-        legend.title = element_text(size = 12, hjust = 0.5),
-        legend.text = element_text(size = 12),
-        legend.key = element_blank()) +
+        legend.margin = margin( r = 0.2, unit = "cm"),
+        legend.title = element_text(size = 6, hjust = 0.5),
+        legend.text = element_text(size = 6, hjust = 0.5),
+        legend.key = element_blank(),
+        legend.spacing.x = unit(0.05, 'cm')) +
   guides(size = guide_legend(title = "Mean of riboswitches per organism",
                              title.position = "top",
                              nrow = 1,
@@ -98,9 +119,11 @@ ggplot(df_riboswitch_group,
          colour = guide_colorbar(title = "% of transcriptional riboswitches",
                                  title.position = "top",
                                  order = 2,
-                                 barwidth = 12)
+                                 barwidth = 7)
   ) +
   scale_color_gradientn(colours = rev(rainbow(5))) +
   scale_y_discrete(limits = rev(levels(as.factor(df_riboswitch_group$phylum))) ) +
-  scale_size_continuous(range = c(3,13), breaks = seq(0.1,1, 0.1) )
-dev.off()
+  scale_size_continuous(range = c(0.5,5), breaks = seq(0.1,1, 0.1) )
+ggsave(filename = here::here("figures","F42.tiff"), device = "tiff",
+       width = 8, height = 5, units = "cm", dpi = 300, scale = 2)
+

@@ -26,11 +26,14 @@ archaeas <- c("Crenarchaeota", "Euryarchaeota")
 kos_regulators <- dplyr::filter(kos_regulators, !phylum %in% archaeas)
 
 ## reorder by phylum
-phylum_order <- sort(unique(kos_regulators$phylum))[-c(3,8)]
-phylum_order[8:9] <- c("Chlamydiae" , "Tenericutes" )
+phylum_order <- c("Proteobacteria","Spirochaetes",
+                  "Firmicutes","Actinobacteria",
+                  "Verrucomicrobia", "Bacteroidetes",
+                  "Planctomycetes",
+                  "Tenericutes",  "Chlamydiae")
 
 kos_regulators$phylum <- factor(kos_regulators$phylum, ordered = TRUE, levels = phylum_order)
-
+kos_regulators <- filter(kos_regulators, sf < 100)
 
 ## plot the number of transcription factors versus sigma factors per genome
 
@@ -39,11 +42,13 @@ TheilSen <- function(..., weights = NULL) {
 }
 
 
-ggplot(kos_regulators, aes(x = tf, y = sf)) +
+ggplot(kos_regulators, aes(x = sf, y = tf)) +
     geom_point(size = 0.2) +
     geom_smooth(method = "TheilSen", se = FALSE, size = 0.5) +
-    labs(x = "Transcription factors",
-         y = "Sigma factors") +
+    labs(x = "Sigma factors",
+         y = "Transcription factors") +
+    ylim(0,200) +
+    xlim(0,100) +
     theme_bw() +
     theme(panel.grid = element_blank(),
           axis.title = element_text(size = 10, face = "bold"),
@@ -57,9 +62,8 @@ ggsave(filename = here::here("figures","S3.tiff"), device = "tiff",
 
 slopeThielsen <- function(x) {
     df <- kos_regulators %>% dplyr::filter(phylum == x)
-    m <- mblm::mblm(sf ~ tf ,df)[[1]][2] %>% round(2)
-    names(m) <- x
+    m <- mblm::mblm(tf ~ sf ,df)[[1]][2] %>% round(2)
     return(m)
 }
 
-sapply(levels(kos_regulators$phylum), slopeThielsen)
+sapply(unique(kos_regulators$phylum), slopeThielsen)

@@ -20,8 +20,11 @@ archaeas <- c("Crenarchaeota", "Euryarchaeota")
 total_cogs <- dplyr::filter(total_cogs, !phylum %in% archaeas)
 
 ## reorder by phylum
-phylum_order <- sort(unique(total_cogs$phylum))[-c(3,8)]
-phylum_order[8:9] <- c("Chlamydiae" , "Tenericutes" )
+phylum_order <- c("Proteobacteria","Actinobacteria",
+                  "Spirochaetes", "Firmicutes",
+                  "Verrucomicrobia", "Bacteroidetes",
+                  "Planctomycetes",
+                  "Tenericutes",  "Chlamydiae")
 
 total_cogs$phylum <- factor(total_cogs$phylum, ordered = TRUE, levels = phylum_order)
 
@@ -30,12 +33,14 @@ total_cogs$phylum <- factor(total_cogs$phylum, ordered = TRUE, levels = phylum_o
 TheilSen <- function(..., weights = NULL) {
     mblm::mblm(...)
 }
-
-ggplot(total_cogs, aes(x = tf, y = sf)) +
+total_cogs <- dplyr::filter(total_cogs, sf < 100)
+ggplot(total_cogs, aes(x = sf, y = tf)) +
     geom_point(size = 0.2) +
     geom_smooth(method = "TheilSen", se = FALSE, size = 0.5) +
-    labs(x = "Transcription factors",
-         y = "Sigma factors") +
+    ylim(0,800) +
+    xlim(0,100) +
+    labs(x = "Sigma factors",
+         y = "Transcription factors") +
     theme_bw() +
     theme(panel.grid = element_blank(),
           axis.title = element_text(size = 10, face = "bold"),
@@ -49,12 +54,9 @@ ggsave(filename = here::here("figures","F2.tiff"), device = "tiff",
 
 slopeThielsen <- function(x) {
     df <- total_cogs %>% dplyr::filter(phylum == x)
-    m <- mblm::mblm(sf ~ tf ,df)[[1]][2] %>% round(2)
+    m <- mblm::mblm(tf ~ sf ,df)[[1]][2] %>% round(2)
     names(m) <- x
     return(m)
 }
 
 sapply(levels(total_cogs$phylum), slopeThielsen)
-
-model <- mblm::mblm(formula = x$`Sigma factors` ~ x$`Transcription factors`)
-mblm::mblm(formula = total_cogs$`Sigma factors` ~ total_cogs$`Transcription factors`, dataframe = total_cogs)

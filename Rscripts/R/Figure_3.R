@@ -45,23 +45,30 @@ dev.off()
 ###############################################################################
 # COGs Sigma Factors ####
 
-data_cogs_sigma <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_12.txt")
+data_cogs_sigma <- readxl::read_excel(here::here("data/Table_S6.xlsx"),
+                                      sheet = 2,
+                                      col_names = TRUE,
+                                      skip = 2)
 
 ## enrichment analysis ####
-fisher_cogs_sigma <- enrichment_fisher(data_cogs_sigma,
+archaeas <- c("Crenarchaeota","Euryarchaeota")
+fisher_cogs_sigma <- erba::enrichment_fisher(data_cogs_sigma,
                                        column_names = cogs_sigma,
-                                       phylogeny = selected_phylogeny)
+                                       phylogeny = selected_phylogeny[!selected_phylogeny %in% archaeas])
+enrichment_cogs_sigma <- log10(fisher_cogs_sigma[[2]] + 1e-5)
 
 ## replace colnames ####
-enrichment_cogs_sigma <- log10(fisher_cogs_sigma[[2]] + 1e-5)
-cogs_sigma_names <- readr::read_tsv("../Supplementary_files/Supplementary_Table_3.txt")
+cogs_sigma_names <- readxl::read_excel(here::here("data/Table_S1.xlsx"),
+                                       sheet = 3,
+                                       col_names = TRUE,
+                                       skip = 2)
 cogs_sigma_names <- cogs_sigma_names %>%
     select(COG, Prefix) %>%
     distinct()
 colnames(enrichment_cogs_sigma) <- as.character(cogs_sigma_names$Prefix)
 
 ## plot heatmap ####
-tiff(filename = "figures/heatmap_cogs_sigma.tiff", height = 800, units = 'px', res = 100)
+tiff(filename = here::here("figures/F3_heatmap_cogs_sf.tiff"), height = 800, units = 'px', res = 100)
 myplot <- Heatmap(enrichment_cogs_sigma,  name = "log10(odd.ratio)", col = col_fun,
                   row_names_side = "left",
                   row_names_gp = gpar(fontsize = 14),
@@ -107,21 +114,27 @@ dev.off()
 
 # KOs Sigma Factors ####
 
-data_kos_sigma <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_9.txt")
+data_kos_sigma <- readxl::read_excel(here::here("data/Table_S4.xlsx"),
+                                     sheet = 2,
+                                     col_names = TRUE,
+                                     skip = 2)
 
 ## enrichment analysis ####
 fisher_kos_sigma <- enrichment_fisher(data_kos_sigma,
                                       column_names = kos_sigma,
-                                      phylogeny = selected_phylogeny,
+                                      phylogeny = selected_phylogeny[!selected_phylogeny %in% archaeas],
                                       replace_by = 1000)
+enrichment_kos_sigma <- log10(fisher_kos_sigma[[2]] + 1e-5)
 
 ## replace colnames ####
-enrichment_kos_sigma <- log10(fisher_kos_sigma[[2]] + 1e-5)
-kos_sigma_names <- readr::read_tsv("../Supplementary_files/Supplementary_Table_4.txt")
+kos_sigma_names <- readxl::read_excel(here::here("data/Table_S1.xlsx"),
+                                      sheet = 4,
+                                      col_names = TRUE,
+                                      skip = 2)
 colnames(enrichment_kos_sigma) <- as.character(kos_sigma_names$Prefix)
 
 ## plot heatmap ####
-tiff(filename = "figures/heatmap_kos_sigma.tiff", height = 600, width = 600, units = 'px', res = 100)
+tiff(filename = here::here("figures/F3_heatmap_kos_sf.tiff"), height = 600, width = 600, units = 'px', res = 100)
 myplot <- Heatmap(enrichment_kos_sigma,  name = "log10(odd.ratio)", col = col_fun,
                   row_names_side = "left",
                   row_names_gp = gpar(fontsize = 14),
@@ -171,23 +184,30 @@ filter(kos_tf_names, KO %in% data_archaea_unique$KO)
 
 # Riboswitch #####
 
-data_riboswitch <- readr::read_tsv("../Supplementary_Files/Supplementary_Table_10.txt")
+data_riboswitch <- readxl::read_excel(here::here("data/Table_S5.xlsx"),
+                                      sheet = 2,
+                                      col_names = TRUE,
+                                      skip = 2)
 
 ## enrichment analysis ####
 id_transcriptional <- colnames(data_riboswitch)[grep("RF[0-9]",colnames(data_riboswitch))]
+
 fisher_riboswitch <- erba::enrichment_fisher(data_riboswitch,
-                                             column_names = id_transcriptionaal,
+                                             column_names = id_transcriptional,
                                              replace_by = 1000,
-                                             phylogeny = selected_phylogeny)
+                                             phylogeny = erba::selected_phylogeny)
+riboswitch <- log10(fisher_riboswitch[[2]] + 1E-5)
 
 ## replace colnames ####
-riboswitch <- log10(fisher_riboswitch[[2]] + 1E-5)
-riboswitch_names <- readr::read_tsv("../Supplementary_files/Supplementary_Table_10.2.txt")
+riboswitch_names <- readxl::read_excel(here::here("data/Table_S5.xlsx"),
+                                       sheet = 1,
+                                       col_names = TRUE,
+                                       skip = 2)
 riboswitch_names <- dplyr::filter(riboswitch_names, Rfam %in% id_transcriptional)
 colnames(riboswitch) <- riboswitch_names$Description
 
 ## plot heatmap ####
-tiff(filename = "figures/heatmap_riboswitch_transcriptional.tiff", width = 1234, height = 880, units = 'px', res = 100)
+tiff(filename = "figures/F3_heatmap_riboswitch.tiff", width = 1234, height = 880, units = 'px', res = 100)
 myplot <- Heatmap(riboswitch,  name = "log10(odd.ratio)", col = col_fun,
                   row_names_side = "left",
                   row_names_gp = gpar(fontsize = 16),

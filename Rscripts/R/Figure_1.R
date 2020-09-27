@@ -20,9 +20,10 @@ erba::plot_points(total_cogs, type = "general",
                   ylab = "Transcription factors per genome", ymax = 800)
 
 ### obtain lm Coefficients in general
-lm(total_cogs$`Transcription Factors` ~ total_cogs$`ORFs(X100)`)
-cor(total_cogs$`Transcription Factors`, total_cogs$`ORFs(X100)`) %>% round(2)
+lm(total_cogs$`Transcription factors` ~ total_cogs$`ORFs(X100)`)
+cor(total_cogs$`Transcription factors`, total_cogs$`ORFs(X100)`)
 
+summary(lm(total_cogs$`Transcription factors` ~ total_cogs$`ORFs(X100)`))
 
 ####################################################################
 # B) COGs Sigma Factors ####
@@ -46,8 +47,9 @@ erba::plot_points(total_cogs, type =  "general",
 
 ## obtain lm Coefficients in general
 lm(total_cogs$`Sigma factors` ~ total_cogs$`ORFs(X100)` )
-cor(total_cogs$`Sigma factors`, total_cogs$`ORFs(X100)`) %>% round(2)
+cor(total_cogs$`Sigma factors` , total_cogs$`ORFs(X100)` )
 
+summary(lm(total_cogs$`Sigma factors` ~ total_cogs$`ORFs(X100)`))
 ##########################################################################
 # C) Riboswitch #####
 
@@ -63,7 +65,7 @@ zero_riboswitches <- c("Chlamydiae", "Crenarchaeota")
 data_riboswitch <- data_riboswitch %>% dplyr::filter(!phylum %in% zero_riboswitches)
 
 erba::plot_exception(data_riboswitch,
-                     filename = here::here("figures/riboswitch_lm2.tiff"),
+                     filename = here::here("figures/F1_riboswitch_lm.tiff"),
                      title = "Transcriptional Riboswitches",
                      ylab = "Riboswitches per genome",
                      ymax = 15,
@@ -75,16 +77,15 @@ lm(data = data_riboswitch[data_riboswitch$phylum =="Firmicutes",],
 lm(data = data_riboswitch[!data_riboswitch$phylum =="Firmicutes",],
    formula = total~ORFs)[[1]][2] %>% round(2)
 
-data_riboswitch  %>%
-  filter(phylum == "Firmicutes")  %>%
-  summarise(cor = cor(total, ORFs)) %>%
-  round(2)
+filter(data_riboswitch, phylum == "Firmicutes") %>%
+  summarise(cor = cor(total, ORFs) )
+filter(data_riboswitch, !phylum == "Firmicutes") %>%
+  summarise(cor = cor(total, ORFs) )
 
-data_riboswitch  %>%
-  filter(!phylum == "Firmicutes")  %>%
-  summarise(cor = cor(total, ORFs)) %>%
-  round(2)
-
+summary(lm(data = data_riboswitch[data_riboswitch$phylum =="Firmicutes",],
+           formula = total~ORFs))
+summary(lm(data = data_riboswitch[!data_riboswitch$phylum =="Firmicutes",],
+           formula = total~ORFs))
 ##########################################################################
 # D) COGs Transcription Factors #####
 
@@ -102,9 +103,15 @@ erba::plot_points(total_cogs, type = "groups",
                   ylab = "Transcription factors per genome", ymax = 800)
 
 ## obtain lm Coefficients per group
-erba::get_correlation(total_cogs, x = "ORFs(X100)", y = "Transcription Factors")
+erba::get_correlation(total_cogs, "ORFs(X100)","Transcription factors")
 erba::get_slopePerPhylum(total_cogs, x =  "ORFs(X100)" , y ="Transcription Factors")
 
+get_R2_perPhylum <- function(x) {
+  y <- dplyr::filter(total_cogs, phylum  == x)
+  summary(lm(y$`Transcription factors` ~ y$`ORFs(X100)`))
+}
+
+sapply(sort(unique(total_cogs$phylum)), get_R2_perPhylum)
 
 ####################################################################
 # E) COGs Sigma Factors ####
@@ -131,6 +138,14 @@ erba::plot_points(total_cogs, type =  "groups",
 erba::get_correlation(total_cogs, x = "ORFs(X100)", y = "Sigma factors")
 erba::get_slopePerPhylum(total_cogs, x = "ORFs(X100)", y = "Sigma factors")
 
+get_R2_perPhylum <- function(x) {
+  y <- dplyr::filter(total_cogs, phylum  == x)
+  summary(lm(y$`Sigma factors` ~ y$`ORFs(X100)`))
+}
+
+sapply(sort(unique(total_cogs$phylum)), get_R2_perPhylum)
+
+
 ##########################################################################
 # F) Riboswitch #####
 
@@ -139,26 +154,33 @@ data_riboswitch <- readxl::read_excel(here::here("data/Table_S5.xlsx"),
                                       sheet = 2,
                                       col_names = TRUE,
                                       skip = 2)
+colnames(data_riboswitch)[2] <- "ORFs"
 
 ## plot distribution of riboswitches versus genome size
-zero_groups <- data_riboswitch %>%
-  group_by(phylum) %>%
-  summarise(total = sum(total)) %>%
-  filter(total == 0) %>%
-  select(phylum) %>% unlist()
+
+zero_riboswitches <- c("Chlamydiae", "Crenarchaeota")
 
 data_riboswitch <- data_riboswitch %>%
-  filter(!phylum %in% zero_groups)
+  filter(!phylum %in% zero_riboswitches)
 
 erba::plot_points(data_riboswitch,
                   type = "groups",
-                  column_orfs = data_riboswitch$ORFs,
-                  column_total = data_riboswitch$total,
-                  filename = here::here("figures/riboswitch_lm_color.tiff"),
+                  x = data_riboswitch$ORFs,
+                  y = data_riboswitch$total,
+                  filename = here::here("figures/F1_riboswitch_lm_color.tiff"),
                   title = "Transcriptional Riboswitches",
+                  xlab = "ORFs (x 100)",
                   ylab = "Riboswitches per genome",
                   ymax = 15)
 
 ### obtain lm Coefficients per group
 erba::get_slopePerPhylum(data_riboswitch, x = "ORFs", y = "total")
-erba::get_correlation(data_riboswitch, x = "ORFs", y = "total")
+erba::get_correlation(data_riboswitch,  x = "ORFs", y = "total")
+get_R2_perPhylum <- function(x) {
+  y <- dplyr::filter(data_riboswitch, phylum  == x)
+  summary(lm(y$total ~ y$ORFs))
+}
+
+sapply(sort(unique(data_riboswitch$phylum)), get_R2_perPhylum)
+
+

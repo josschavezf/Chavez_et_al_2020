@@ -23,8 +23,8 @@ erba::plot_points(total_kos_tf, type = "general",
                   ylab = "Transcription factors per genome")
 
 ### obtain lm Coefficients in general
-lm(total_kos_tf$total ~ total_kos_tf$`ORFs(X100)`)
-cor(total_kos_tf$total, total_kos_tf$`ORFs(X100)`) %>% round(2)
+summary(lm(total_kos_tf$total ~ total_kos_tf$`ORFs(X100)`) )
+cor(total_kos_tf$total , total_kos_tf$`ORFs(X100)`)
 
 ####################################################################
 # B) KOs Sigma Factors ####
@@ -48,9 +48,8 @@ erba::plot_points(total_kos_sigma, type =  "general",
                   ymax = 120)
 
 ## obtain lm Coefficients in general
-lm(total_kos_sigma$total ~ total_kos_sigma$`ORFs(X100)`)
-cor(total_kos_sigma$total, total_kos_sigma$`ORFs(X100)`) %>% round(2)
-
+summary(lm(total_kos_sigma$total ~ total_kos_sigma$`ORFs(X100)`) )
+cor(total_kos_sigma$total , total_kos_sigma$`ORFs(X100)`)
 ###############################################################################
 # C) KOs Transcription Factors per phylum #####
 
@@ -69,8 +68,16 @@ erba::plot_points(total_kos_tf, type = "groups",
                   ylab = "Transcription factors per genome")
 
 ### obtain lm Coefficients per phylum
-erba::get_correlation(total_kos_tf, x = "ORFs(X100)", y = "total")
 erba::get_slopePerPhylum(total_kos_tf, x = "ORFs(X100)", y = "total")
+erba::get_correlation(total_kos_tf, x = "ORFs(X100)", y = "total")
+
+
+get_R2_perPhylum <- function(x) {
+    y <- dplyr::filter(total_kos_tf, phylum  == x)
+    summary(lm(y$total ~ y$`ORFs(X100)`))
+}
+
+sapply(sort(unique(total_kos_tf$phylum)), get_R2_perPhylum)
 
 ####################################################################
 # D) KOs Sigma Factors per phylum ####
@@ -94,7 +101,14 @@ erba::plot_points(total_kos_sigma, type =  "groups",
                   ymax = 120)
 
 ## obtain lm Coefficients per phylum
-erba::get_correlation(total_kos_sigma, x = "ORFs(X100)", y = "total")
 erba::get_slopePerPhylum(total_kos_sigma, x = "ORFs(X100)", y = "total")
+erba::get_correlation(total_kos_sigma, x = "ORFs(X100)", y = "total")
+
+get_R2_perPhylum <- function(x) {
+    y <- dplyr::filter(total_kos_sigma, phylum  == x)
+    summary(lm(y$total ~ y$`ORFs(X100)`))
+}
+
+sapply(sort(unique(total_kos_sigma$phylum)), get_R2_perPhylum)
 
 ##########################################################################
